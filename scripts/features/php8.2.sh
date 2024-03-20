@@ -1,26 +1,34 @@
 #!/usr/bin/env bash
 
 if [ -f ~/.homestead-features/wsl_user_name ]; then
-   WSL_USER_NAME="$(cat ~/.homestead-features/wsl_user_name)"
-   WSL_USER_GROUP="$(cat ~/.homestead-features/wsl_user_group)"
+    WSL_USER_NAME="$(cat ~/.homestead-features/wsl_user_name)"
+    WSL_USER_GROUP="$(cat ~/.homestead-features/wsl_user_group)"
 else
-   WSL_USER_NAME=vagrant
-   WSL_USER_GROUP=vagrant
+    WSL_USER_NAME=vagrant
+    WSL_USER_GROUP=vagrant
 fi
 
 export DEBIAN_FRONTEND=noninteractive
 
+SERVICE_STATUS=$(systemctl is-enabled php8.2-fpm.service)
+
+if [ "$SERVICE_STATUS" == "disabled" ];
+then
+  systemctl enable php8.2-fpm
+  service php8.2-fpm restart
+fi
+
 if [ -f /home/$WSL_USER_NAME/.homestead-features/php82 ]
 then
-   echo "PHP 8.2 already installed."
-   exit 0
+    echo "PHP 8.2 already installed."
+    exit 0
 fi
 
 touch /home/$WSL_USER_NAME/.homestead-features/php82
 chown -Rf $WSL_USER_NAME:$WSL_USER_GROUP /home/$WSL_USER_NAME/.homestead-features
 
 # PHP 8.2
-apt-get install -y --allow-change-held-packages \
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --allow-change-held-packages \
 php8.2 php8.2-bcmath php8.2-bz2 php8.2-cgi php8.2-cli php8.2-common php8.2-curl php8.2-dba php8.2-dev \
 php8.2-enchant php8.2-fpm php8.2-gd php8.2-gmp php8.2-imap php8.2-interbase php8.2-intl php8.2-ldap \
 php8.2-mbstring php8.2-mysql php8.2-odbc php8.2-opcache php8.2-pgsql php8.2-phpdbg php8.2-pspell php8.2-readline \
@@ -61,4 +69,5 @@ sed -i "s/listen\.owner.*/listen.owner = vagrant/" /etc/php/8.2/fpm/pool.d/www.c
 sed -i "s/listen\.group.*/listen.group = vagrant/" /etc/php/8.2/fpm/pool.d/www.conf
 sed -i "s/;listen\.mode.*/listen.mode = 0666/" /etc/php/8.2/fpm/pool.d/www.conf
 
-touch /home/vagrant/.homestead-features/php8.2
+systemctl enable php8.2-fpm
+service php8.2-fpm restart

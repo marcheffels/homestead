@@ -10,13 +10,13 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
-if [ -f /home/$WSL_USER_NAME/.homestead-features/elasticsearch ]
+if [ -f /home/$WSL_USER_NAME/.homestead-features/logstash ]
 then
-    echo "Elasticsearch already installed."
+    echo "logstash already installed."
     exit 0
 fi
 
-touch /home/$WSL_USER_NAME/.homestead-features/elasticsearch
+touch /home/$WSL_USER_NAME/.homestead-features/logstash
 chown -Rf $WSL_USER_NAME:$WSL_USER_GROUP /home/$WSL_USER_NAME/.homestead-features
 
 # Determine version from config
@@ -33,11 +33,11 @@ else
 fi
 
 
-echo "Elasticsearch installVersion: $installVersion"
-echo "Elasticsearch majorVersion: $majorVersion"
+echo "Logstash installVersion: $installVersion"
+echo "Logstash majorVersion: $majorVersion"
 
 
-# Install Java & Elasticsearch
+# Install Java & Logstash
 curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /etc/apt/keyrings/elasticsearch.gpg
 
 if [ ! -f /etc/apt/sources.list.d/elastic-$majorVersion.x.list ]; then
@@ -46,17 +46,8 @@ fi
 
 sudo apt-get update
 sudo apt-get -y install openjdk-11-jre
-sudo apt-get -y install elasticsearch"$installVersion"
-
-# Start Elasticsearch on boot
-
-sudo update-rc.d elasticsearch defaults 95 10
-
-# Update configuration to use 'homestead' as the cluster
-
-sudo sed -i "s/#cluster.name: my-application/cluster.name: homestead/" /etc/elasticsearch/elasticsearch.yml
+sudo apt-get -y install logstash"$installVersion"
 
 # Enable Start Elasticsearch
 
-sudo systemctl enable elasticsearch.service
-sudo service elasticsearch start
+sudo systemctl enable --now logstash.service
